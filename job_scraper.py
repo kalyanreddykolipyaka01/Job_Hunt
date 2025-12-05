@@ -26,7 +26,7 @@ LOCATIONS = [
     "Canada",
 ]
 
-SITES = ["indeed", "linkedin", "zip_recruiter"]
+SITES = ["indeed", "linkedin"]
 
 RESULTS_WANTED = int("100")
 HOURS_OLD = int("24")
