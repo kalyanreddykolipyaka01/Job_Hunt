@@ -9,6 +9,8 @@ from googleapiclient.discovery import build
 import os
 import yagmail
 from dotenv import load_dotenv
+import time
+from googleapiclient.errors import HttpError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -271,9 +273,7 @@ def autofit_columns(sheet_url: str, creds_path: str):
     }
 
     try:
-        service.spreadsheets().batchUpdate(
-            spreadsheetId=spreadsheet_id, body=body
-        ).execute()
+        retry_batch_update(service, spreadsheet_id, body)
         print("🪄 Auto-fit columns applied.")
     except Exception as e:
         print(f"⚠ Auto-fit failed: {e}")
@@ -373,7 +373,7 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
                     }
                 ]
             }
-            service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+            retry_batch_update(service, spreadsheet_id, body)
             # Set row height to 21px for all existing rows (explicit endIndex)
             end_index = ws.row_count
             set_row_height_with_service(service, spreadsheet_id, sheet_id, end_index=end_index, pixel_size=21)
@@ -438,7 +438,7 @@ def set_row_height_with_service(service, spreadsheet_id: str, sheet_id: int, end
             }
         ]
     }
-    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+    retry_batch_update(service, spreadsheet_id, body)
 
 
 def set_column_widths_with_service(service, spreadsheet_id: str, sheet_id: int, column_indexes: list[int], pixel_size: int = 100):
@@ -461,7 +461,34 @@ def set_column_widths_with_service(service, spreadsheet_id: str, sheet_id: int, 
         return
 
     body = {"requests": requests}
-    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+    retry_batch_update(service, spreadsheet_id, body)
+
+def retry_batch_update(service, spreadsheet_id: str, body: dict, max_retries: int = 3, initial_delay: float = 2.0):
+    """
+    Execute Sheets batchUpdate with simple exponential backoff retries.
+    Retries on HttpError 429/5xx and socket timeouts.
+    """
+    delay = initial_delay
+    for attempt in range(1, max_retries + 1):
+        try:
+            service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+            return
+        except HttpError as e:
+            status = getattr(e, 'status_code', None)
+            if status and (status == 429 or 500 <= status < 600):
+                if attempt < max_retries:
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
+            # For non-retriable or final attempt, re-raise
+            raise
+        except Exception as e:
+            msg = str(e).lower()
+            if ("timeout" in msg or "timed out" in msg) and attempt < max_retries:
+                time.sleep(delay)
+                delay *= 2
+                continue
+            raise
 
 
 if __name__ == "__main__":
