@@ -17,7 +17,25 @@ load_dotenv()
 # ---------------------------------------------------------
 
 SEARCH_TERMS = [
-    "machine learning engineer"
+    "machine learning engineer",
+    "ml engineer",
+    "mlops engineer",
+    "data engineer",
+    "data scientist",
+    "data analyst",
+    "ai engineer",
+    "llm engineer",
+    "nlp engineer",
+    "python",
+    "Artificial Intelligence",
+    "numpy, pandas, scikit learn, matplotlib, TensorFlow",
+    "backend developer fastapi",
+    "RAG (Retrival Augmented Generation)",
+    "MCP (Model Context Protocol)",
+    "HuggingFace",
+    "React",
+    "Next.js",
+    "Sentiment Analysis"
 ]
 
 LOCATIONS = [
