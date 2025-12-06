@@ -48,7 +48,7 @@ LOCATIONS = [
 SITES = ["indeed", "linkedin"]
 
 RESULTS_WANTED = int("100")
-HOURS_OLD = int("500") # ~21 days
+HOURS_OLD = int("26") # 24 hours + 2 extra for timezones & delays
 COUNTRY = "Canada"
 
 OUTPUT_DIR = "jobs_data"
@@ -295,6 +295,15 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     # Auth and open
     gc = gspread.service_account(filename=creds_path)
     sh = gc.open_by_url(sheet_url)
+    # Robust spreadsheet id from gspread (avoid brittle URL parsing)
+    spreadsheet_id = sh.id
+    # Build Sheets API service once and reuse
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
+    service = build("sheets", "v4", credentials=creds)
 
     # Worksheet names
     # Use Toronto timezone for date in sheet name
@@ -350,14 +359,6 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     # Auto-fit both worksheets
     for ws in (ws_master, ws_today):
         try:
-            scopes = [
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive",
-            ]
-            creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
-            service = build("sheets", "v4", credentials=creds)
-
-            spreadsheet_id = sheet_url.split("/d/")[1].split("/")[0]
             sheet_id = ws._properties.get("sheetId")
             body = {
                 "requests": [
@@ -373,9 +374,9 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
                 ]
             }
             service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
-
-            # Set row height to 21px
-            set_row_height(sheet_url, creds_path, sheet_id, pixel_size=21)
+            # Set row height to 21px for all existing rows (explicit endIndex)
+            end_index = ws.row_count
+            set_row_height_with_service(service, spreadsheet_id, sheet_id, end_index=end_index, pixel_size=21)
 
         except Exception as e:
             print(f"⚠ Auto-fit or row-height set failed for '{ws.title}': {e}")
@@ -391,7 +392,7 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     today_indexes = column_indexes_from_names(list(today_df.columns), target_cols)
     if today_indexes:
         try:
-            set_column_widths(sheet_url, creds_path, ws_today._properties.get("sheetId"), today_indexes, pixel_size=100)
+            set_column_widths_with_service(service, spreadsheet_id, ws_today._properties.get("sheetId"), today_indexes, pixel_size=100)
         except Exception as e:
             print(f"⚠ Failed to set column widths on '{ws_today.title}': {e}")
 
@@ -400,7 +401,7 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
         combined_cols = list(combined.columns)
         master_indexes = column_indexes_from_names(combined_cols, target_cols)
         if master_indexes:
-            set_column_widths(sheet_url, creds_path, ws_master._properties.get("sheetId"), master_indexes, pixel_size=100)
+            set_column_widths_with_service(service, spreadsheet_id, ws_master._properties.get("sheetId"), master_indexes, pixel_size=100)
     except Exception as e:
         print(f"⚠ Failed to set column widths on '{ws_master.title}': {e}")
 
@@ -420,16 +421,7 @@ def send_completion_email(to_email: str, sheet_url: str, gmail_user: str, gmail_
         print(f"⚠ Failed to send email: {e}")
 
 
-def set_row_height(sheet_url: str, creds_path: str, sheet_id: int, pixel_size: int = 21):
-    # Extract spreadsheet ID
-    spreadsheet_id = sheet_url.split("/d/")[1].split("/")[0]
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-    creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
-    service = build("sheets", "v4", credentials=creds)
-
+def set_row_height_with_service(service, spreadsheet_id: str, sheet_id: int, end_index: int, pixel_size: int = 21):
     body = {
         "requests": [
             {
@@ -437,8 +429,8 @@ def set_row_height(sheet_url: str, creds_path: str, sheet_id: int, pixel_size: i
                     "range": {
                         "sheetId": sheet_id,
                         "dimension": "ROWS",
-                        "startIndex": 0,  # all rows
-                        # omit endIndex to apply to all existing rows
+                        "startIndex": 0,
+                        "endIndex": end_index,
                     },
                     "properties": {"pixelSize": pixel_size},
                     "fields": "pixelSize",
@@ -449,16 +441,7 @@ def set_row_height(sheet_url: str, creds_path: str, sheet_id: int, pixel_size: i
     service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
 
 
-def set_column_widths(sheet_url: str, creds_path: str, sheet_id: int, column_indexes: list[int], pixel_size: int = 100):
-    # Extract spreadsheet ID
-    spreadsheet_id = sheet_url.split("/d/")[1].split("/")[0]
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-    creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
-    service = build("sheets", "v4", credentials=creds)
-
+def set_column_widths_with_service(service, spreadsheet_id: str, sheet_id: int, column_indexes: list[int], pixel_size: int = 100):
     requests = []
     for idx in column_indexes:
         requests.append({
@@ -504,7 +487,7 @@ if __name__ == "__main__":
         creds_path=creds_path,
     )
 
-    # Optional: send email notification (requires Gmail app password)
+    # send email notification (requires Gmail app password)
     # Set your details here or read from env vars
     gmail_user = os.getenv("GMAIL_USER")
     gmail_app_password = os.getenv("MAIL_APP_PASSWORD")
