@@ -2,8 +2,11 @@ name: Daily Job Scrape
 
 on:
   schedule:
-    # 8:00 AM America/Toronto ~ 13:00 UTC (adjust for DST as needed)
+    # 8:00 AM America/Toronto year-round
+    # Standard Time (EST, UTC-5): 13:00 UTC
     - cron: '0 13 * * *'
+    # Daylight Time (EDT, UTC-4): 12:00 UTC
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 jobs:
