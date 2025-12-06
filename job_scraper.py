@@ -52,7 +52,7 @@ LOCATIONS = [
 SITES = ["indeed", "linkedin"]
 
 RESULTS_WANTED = int("100")
-HOURS_OLD = int("26") # 24 hours + 2 extra for timezones & delays
+HOURS_OLD = int("500") # 24 hours + 2 extra for timezones & delays
 COUNTRY = "Canada"
 
 OUTPUT_DIR = "jobs_data"
@@ -250,33 +250,49 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     today_name = f"Today-{toronto_now.strftime('%Y%m%d')}"
     master_name = "Master"
 
-    # Ensure worksheets exist
-    ws_today = _get_or_create_worksheet(
-        sh, today_name, rows=len(today_df)+50, cols=len(today_df.columns)+5
-    )
+    # Ensure Master worksheet exists
     ws_master = _get_or_create_worksheet(
         sh, master_name, rows=len(today_df)+50, cols=len(today_df.columns)+5
     )
 
-    # --- WRITE TODAY SHEET ---
-    ws_today.clear()
-    set_with_dataframe(ws_today, today_df)
-    
-    # --- WRITE MASTER SHEET ---
+    # --- READ EXISTING MASTER ---
+    existing_master = pd.DataFrame()
     try:
         existing_master = pd.DataFrame(ws_master.get_all_records())
-        if not existing_master.empty:
-            combined = pd.concat([existing_master, today_df], ignore_index=True)
-            combined.drop_duplicates(subset=["job_url"], inplace=True)
-            
-            # Re-sort Master by date if possible
-            if "date_posted" in combined.columns:
-                combined["date_posted"] = pd.to_datetime(combined["date_posted"], errors="coerce")
-                combined.sort_values("date_posted", ascending=False, inplace=True)
-        else:
-            combined = today_df
     except Exception:
-        combined = today_df
+        pass
+
+    # --- FILTER NEW JOBS ---
+    # Only keep jobs in today_df that are NOT in existing_master
+    if not existing_master.empty and "job_url" in existing_master.columns and "job_url" in today_df.columns:
+        existing_urls = set(existing_master["job_url"].astype(str))
+        new_jobs_df = today_df[~today_df["job_url"].astype(str).isin(existing_urls)].copy()
+        print(f"🔍 Found {len(new_jobs_df)} new jobs not in Master.")
+    else:
+        new_jobs_df = today_df.copy()
+        print(f"🔍 Master empty or missing URL column. All {len(new_jobs_df)} jobs treated as new.")
+
+    # Ensure Today worksheet exists
+    ws_today = _get_or_create_worksheet(
+        sh, today_name, rows=len(new_jobs_df)+50, cols=len(today_df.columns)+5
+    )
+
+    # --- WRITE TODAY SHEET ---
+    ws_today.clear()
+    set_with_dataframe(ws_today, new_jobs_df)
+    
+    # --- WRITE MASTER SHEET ---
+    if not existing_master.empty:
+        combined = pd.concat([existing_master, new_jobs_df], ignore_index=True)
+        # Dedupe just in case
+        combined.drop_duplicates(subset=["job_url"], inplace=True)
+    else:
+        combined = new_jobs_df
+
+    # Re-sort Master by date
+    if "date_posted" in combined.columns:
+        combined["date_posted"] = pd.to_datetime(combined["date_posted"], errors="coerce")
+        combined.sort_values("date_posted", ascending=False, inplace=True)
 
     ws_master.clear()
     set_with_dataframe(ws_master, combined)
@@ -284,7 +300,9 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     print(f"✅ Saved to Google Sheets: {sh.title} → [{master_name}] and [{today_name}]")
 
     # --- APPLY FORMATTING (Optimized) ---
-    apply_sheet_formatting(service, spreadsheet_id, ws_today.id, today_df)
+    if not new_jobs_df.empty:
+        apply_sheet_formatting(service, spreadsheet_id, ws_today.id, new_jobs_df)
+    
     apply_sheet_formatting(service, spreadsheet_id, ws_master.id, combined)
 
 
