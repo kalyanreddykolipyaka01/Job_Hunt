@@ -58,6 +58,24 @@ Notes:
 - The workflow writes `service_account.json` from `GSHEETS_CREDS_JSON` at runtime and validates it.
 - Your Sheet must be shared with the Service Account email, otherwise uploads will fail with permissions errors.
 
+### Create a Gmail App Password
+Gmail requires an App Password when sending mail from scripts.
+
+Prerequisites:
+- Two-factor authentication (2-Step Verification) must be enabled for your Google account.
+
+Steps:
+1. Open `https://myaccount.google.com/security`.
+2. Under `"Signing in to Google"`, enable `2-Step Verification` if not already on.
+3. After enabling, go back to `Security` and click `App passwords`.
+4. Sign in if prompted. In `Select app`, choose `Mail`; in `Select device`, choose `Other (Custom name)` and enter something like `Job_Hunt`.
+5. Click `Generate`. Google shows a 16-character password (e.g., `abcd efgh ijkl mnop`).
+6. Copy that value and remove spaces (the script also strips spaces automatically). Use this as `MAIL_APP_PASSWORD`.
+
+Tips:
+- If `App passwords` doesn’t appear, ensure 2-Step Verification is enabled and your account type supports app passwords.
+- App passwords can be revoked anytime under the same `App passwords` page.
+
 ## 5) Local Environment (Optional)
 You can also run locally for testing.
 
