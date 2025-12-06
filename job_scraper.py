@@ -292,6 +292,11 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
     # Clear and write today's data
     ws_today.clear()
     set_with_dataframe(ws_today, today_df)
+    # Freeze header row so Sheets recognizes row 1 as headers
+    try:
+        ws_today.freeze(rows=1)
+    except Exception:
+        pass
 
     # For Master: read existing, append today's, dedupe, and write back
     try:
@@ -307,6 +312,11 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
 
     ws_master.clear()
     set_with_dataframe(ws_master, combined)
+    # Freeze header row on Master as well
+    try:
+        ws_master.freeze(rows=1)
+    except Exception:
+        pass
 
     print(f"✅ Saved to Google Sheets: {sh.title} → [" + master_name + "] and [" + today_name + "]")
 
