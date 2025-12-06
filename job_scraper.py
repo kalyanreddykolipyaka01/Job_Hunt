@@ -80,7 +80,7 @@ SPAM_KEYWORDS = [
     "civil engineer", "mechanical engineer", "electrical engineer",
     "fpga engineer", "hardware engineer", "embedded systems",
     "industrial engineer", "chemical engineer", "process engineer",
-    "broadcast", "manufacturing science", "production engineer",
+    "broadcast", "manufacturing science", "production engineer", "III",
     
     # Professional Designations You Don't Have
     "p.eng", "p. eng", "professional engineer", "cpa", "chartered",
@@ -104,7 +104,7 @@ SPAM_KEYWORDS = [
     "Java Developer", "Video Editor", "Videographer", "devops lead", "site reliability lead", "infrastructure architect",
     "database administrator", "dba", "system administrator",
     "network engineer", "telecommunications", "telecom",
-    "quality assurance lead", "qa lead", "test lead",
+    "quality assurance lead", "qa lead", "test lead", "Android",
     
     # Academic/Research (PhD required)
     "research scientist", "research lead", "postdoc", "post-doctoral",
