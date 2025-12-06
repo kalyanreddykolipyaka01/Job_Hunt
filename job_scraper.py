@@ -133,6 +133,12 @@ SPAM_COMPANIES = [
     "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast",
 ]
 
+# Dedicated spam keywords for description (phrases common in spammy descriptions)
+SPAM_DESCRIPTION_KEYWORDS = [
+    "weekly payout",
+    "quick money",
+]
+
 # ---------------------------------------------------------
 
 
@@ -181,10 +187,15 @@ def clean_results(df: pd.DataFrame):
     # Lowercase all spam keywords for comparison
     spam_keywords_lower = [kw.lower() for kw in SPAM_KEYWORDS]
     spam_companies_lower = [kw.lower() for kw in SPAM_COMPANIES]
+    spam_desc_lower = [kw.lower() for kw in SPAM_DESCRIPTION_KEYWORDS]
 
-    def contains_spam(text):
+    def contains_spam_title(text):
         text = str(text).lower()
         return any(kw in text for kw in spam_keywords_lower)
+
+    def contains_spam_description(text):
+        text = str(text).lower()
+        return any(kw in text for kw in spam_desc_lower)
 
     # Company spam matcher
     def company_is_spam(text):
@@ -192,8 +203,8 @@ def clean_results(df: pd.DataFrame):
         return any(kw in text for kw in spam_companies_lower)
 
     mask = ~(
-        df["title"].apply(contains_spam) |
-        df.get("description", pd.Series("", index=df.index)).apply(contains_spam) |
+        df["title"].apply(contains_spam_title) |
+        df.get("description", pd.Series("", index=df.index)).apply(contains_spam_description) |
         df.get("company", pd.Series("", index=df.index)).apply(company_is_spam)
     )
     df = df[mask].copy()
@@ -369,6 +380,30 @@ def save_two_sheets_to_google_sheets(today_df, sheet_url, creds_path):
         except Exception as e:
             print(f"⚠ Auto-fit or row-height set failed for '{ws.title}': {e}")
 
+    # After auto-fit, override specific columns to fixed 100px
+    def column_indexes_from_names(df_cols: list[str], target_names: list[str]) -> list[int]:
+        name_to_index = {name: idx for idx, name in enumerate(df_cols)}
+        return [name_to_index[name] for name in target_names if name in name_to_index]
+
+    target_cols = ["job_url_direct", "company_logo", "description"]
+
+    # Today sheet fixed widths
+    today_indexes = column_indexes_from_names(list(today_df.columns), target_cols)
+    if today_indexes:
+        try:
+            set_column_widths(sheet_url, creds_path, ws_today._properties.get("sheetId"), today_indexes, pixel_size=100)
+        except Exception as e:
+            print(f"⚠ Failed to set column widths on '{ws_today.title}': {e}")
+
+    # Master sheet fixed widths (based on combined DataFrame)
+    try:
+        combined_cols = list(combined.columns)
+        master_indexes = column_indexes_from_names(combined_cols, target_cols)
+        if master_indexes:
+            set_column_widths(sheet_url, creds_path, ws_master._properties.get("sheetId"), master_indexes, pixel_size=100)
+    except Exception as e:
+        print(f"⚠ Failed to set column widths on '{ws_master.title}': {e}")
+
 
 def send_completion_email(to_email: str, sheet_url: str, gmail_user: str, gmail_app_password: str):
     try:
@@ -411,6 +446,38 @@ def set_row_height(sheet_url: str, creds_path: str, sheet_id: int, pixel_size: i
             }
         ]
     }
+    service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
+
+
+def set_column_widths(sheet_url: str, creds_path: str, sheet_id: int, column_indexes: list[int], pixel_size: int = 100):
+    # Extract spreadsheet ID
+    spreadsheet_id = sheet_url.split("/d/")[1].split("/")[0]
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
+    service = build("sheets", "v4", credentials=creds)
+
+    requests = []
+    for idx in column_indexes:
+        requests.append({
+            "updateDimensionProperties": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "dimension": "COLUMNS",
+                    "startIndex": idx,
+                    "endIndex": idx + 1,
+                },
+                "properties": {"pixelSize": pixel_size},
+                "fields": "pixelSize",
+            }
+        })
+
+    if not requests:
+        return
+
+    body = {"requests": requests}
     service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
 
 
