@@ -50,10 +50,10 @@ SPAM_KEYWORDS = [
 
     # Specialized Fields Outside Your Domain
     "Java Developer", "Java", ".net", "Video Editor", "Videographer", "devops lead",
-    "site reliability lead", "infrastructure architect",
-    "database administrator", "dba", "system administrator",
-    "network engineer", "telecommunications", "telecom",
-    "quality assurance lead", "qa lead", "test lead", "Android",
+    "site reliability lead", "infrastructure architect", "Paramedic", "Care", 
+    "database administrator", "dba", "system administrator", "Front Desk Agent",
+    "network engineer", "telecommunications", "telecom", "contract",
+    "quality assurance lead", "qa lead", "test lead", "Android", "Aerospace Engineer",
 
     # Academic/Research (PhD required)
     "research scientist", "research lead", "postdoc", "post-doctoral",
@@ -251,12 +251,15 @@ SPAM_KEYWORDS = [
 
 # Additional spam/fake companies filter (matches `company` column)
 SPAM_COMPANIES = [
-    "Prime Jobs", "Next Jobs", "Jobs Ai", "Get Hired", "Crossover",
-    "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING", "DataAnnotation"
+    "Prime Jobs", "Next Jobs", "Jobs Ai", "Get Hired", "Crossover", "Recruit Loop", "Talent Pulse",
+    "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING", "DataAnnotation", "Mercor",
+    "Talent Connect", "Recruit Loop", "Talent Orbit", "Talent Pulse", "S M Software Solutions Inc", "Lumenalta",
+    "Crossing Hurdles", "Hire Sync", "Hire Wave", "HireFast", "Work Vista", "Hunter Bond", "Twine", "Talently",
+    "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work",        
 ]
 
 # Dedicated spam keywords for description (phrases common in spammy descriptions)
 SPAM_DESCRIPTION_KEYWORDS = [
-    "quick money", "5+ years", "5 years", "6+ years", "7+ years",
-    "8+ years", "10+ years"
+    "quick money", "5+ years",  "6+ years", "7+ years", "8+ years", "10+ years", 
+    "9 years", "6 years", "7 years", "8 years",
 ]
