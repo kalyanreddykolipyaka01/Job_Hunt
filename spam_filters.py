@@ -52,7 +52,7 @@ SPAM_KEYWORDS = [
     "Java Developer", "Java", ".net", "Video Editor", "Videographer", "devops lead",
     "site reliability lead", "infrastructure architect", "Paramedic", "Care", 
     "database administrator", "dba", "system administrator", "Front Desk Agent",
-    "network engineer", "telecommunications", "telecom", "contract",
+    "network engineer", "telecommunications", "telecom", "contract", "women"
     "quality assurance lead", "qa lead", "test lead", "Android", "Aerospace Engineer",
 
     # Academic/Research (PhD required)
@@ -255,7 +255,21 @@ SPAM_COMPANIES = [
     "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING", "DataAnnotation", "Mercor",
     "Talent Connect", "Recruit Loop", "Talent Orbit", "Talent Pulse", "S M Software Solutions Inc", "Lumenalta",
     "Crossing Hurdles", "Hire Sync", "Hire Wave", "HireFast", "Work Vista", "Hunter Bond", "Twine", "Talently",
-    "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work",        
+    "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work", "jobbit", "Akkodis", 
+
+    "EviSmart™", "Spait Infotech Private Limited", "Themesoft Inc.",
+    "V-Soft Consulting Group, Inc.", "Compunnel Inc.", "Avanciers", "Avanciers Inc.", "Avancier's Inc.",  # covers all variations
+    "Apexon", "Iris Software Inc.", "Galent", "n2psystems",
+    "Resonaite", "Astra-North Infoteck Inc.",
+    "Seven Hills Group Technologies Inc.", "Dexian", "DISYS",  # Dexian = former DISYS
+    "Raas Infotek", "Kumaran Systems", "Luxoft", "Synechron",
+    "Collabera", "Flexton Inc.", "Agilus Work Solutions",
+    "Procom", "TEKsystems", "Robert Half",
+    "Randstad Digital", "Randstad Digital Americas",
+    "Hays", "Insight Global", "Andiamo", "Swoon",
+    "HCR Permanent Search", "Signature IT World Inc.",
+    "Nexus Systems Group", "Altis Technology", "excelHR",
+    "BeachHead", "Bevertec", "Robertson & Company Ltd.",        
 ]
 
 # Dedicated spam keywords for description (phrases common in spammy descriptions)
