@@ -252,7 +252,7 @@ SPAM_KEYWORDS = [
 # Additional spam/fake companies filter (matches `company` column)
 SPAM_COMPANIES = [
     "Prime Jobs", "Next Jobs", "Jobs Ai", "Get Hired", "Crossover",
-    "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING"
+    "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING", "DataAnnotation"
 ]
 
 # Dedicated spam keywords for description (phrases common in spammy descriptions)
