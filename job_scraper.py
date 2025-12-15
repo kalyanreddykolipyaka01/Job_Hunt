@@ -42,7 +42,7 @@ def log(msg):
 # ---------------------------------------------------------
 
 SEARCH_TERMS = [
-    "machine learning engineer", "ml engineer", "mlops engineer",
+    "machine learning", "ml engineer", "mlops engineer",
     "data engineer", "data scientist", "data analyst",
     "ai engineer", "llm engineer", "python", "Artificial Intelligence",
     "numpy, pandas, scikit learn, matplotlib, TensorFlow",

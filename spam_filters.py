@@ -244,8 +244,8 @@ SPAM_KEYWORDS = [
     # 👷 Misc unrelated jobs
     "Mechanic", "Bowling Mechanic",
     "Warehouse", "Factory", "Laborer",
-    "Bartender", "Cook", "Driver",
-    "Field Technician",
+    "Bartender", "Cook", "Driver", "compiler",
+    "Field Technician", "Freelance",
     "Estimator", "Scheduler",
 ]
 
@@ -257,15 +257,15 @@ SPAM_COMPANIES = [
     "Crossing Hurdles", "Hire Sync", "Hire Wave", "HireFast", "Work Vista", "Hunter Bond", "Twine", "Talently",
     "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work", "jobbit", "Akkodis", 
 
-    "EviSmart™", "Spait Infotech Private Limited", "Themesoft Inc.",
+    "EviSmart™", "Spait Infotech Private Limited", "Themesoft Inc.", "Mindrift", "Canonical", 
     "V-Soft Consulting Group, Inc.", "Compunnel Inc.", "Avanciers", "Avanciers Inc.", "Avancier's Inc.",  # covers all variations
     "Apexon", "Iris Software Inc.", "Galent", "n2psystems",
-    "Resonaite", "Astra-North Infoteck Inc.",
+    "Resonaite", "Astra-North Infoteck Inc.", "Alimentiv"
     "Seven Hills Group Technologies Inc.", "Dexian", "DISYS",  # Dexian = former DISYS
     "Raas Infotek", "Kumaran Systems", "Luxoft", "Synechron",
     "Collabera", "Flexton Inc.", "Agilus Work Solutions",
-    "Procom", "TEKsystems", "Robert Half",
-    "Randstad Digital", "Randstad Digital Americas",
+    "Procom", "TEKsystems", "Robert Half", "Call For Referral",
+    "Randstad Digital", "Randstad Digital Americas", "Next Match AI",
     "Hays", "Insight Global", "Andiamo", "Swoon",
     "HCR Permanent Search", "Signature IT World Inc.",
     "Nexus Systems Group", "Altis Technology", "excelHR",
