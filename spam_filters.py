@@ -1,279 +1,281 @@
 """
-Centralized spam filters for job scraping.
+Centralized spam + experience filters for job scraping.
 
-Edit these lists to adjust filtering without touching the main script.
+Goal (per your request):
+- Keep ONLY jobs that match a .NET Full Stack profile
+- Filter to ONLY 4–5 years experience roles (reject <4 and >5)
+
+How to use:
+- Import this file in your scraper
+- Call `should_skip_job(title, company, description)` for each job
 """
 
-# 🔴 SPAM KEYWORDS - Filter out jobs YOU'RE NOT ELIGIBLE FOR
-# Based on your profile: New grad (April 2026), ~8 months internship experience
-# Strong in: Python, ML/MLOps, Data Science, Cloud (AWS/Azure), no French, no P.Eng
+from __future__ import annotations
+import re
+from typing import Tuple
+
+
+# =========================
+# 1) SPAM / MISMATCH FILTERS
+# =========================
 
 SPAM_KEYWORDS = [
-    # Seniority Levels (5+ years required)
-    "senior", "sr.", "sr ", "principal", "lead", "staff",
-    "director", "head of", "vice president", "vp", "chief",
-    "executive", "distinguished", "fellow",
+    # Extreme seniority / exec
+    "distinguished", "chief architect", "vp engineering", "head of engineering",
+    "director of engineering", "cto",
 
-    # Experience Level Indicators
-    "intermediate", "experienced professional",
+    # Wrong stacks / non-.NET primary
+    "php", "laravel",
+    "ruby", "ruby on rails", "rails",
+    "django", "flask",
+    "spring boot", "kotlin",
+    "golang", "go developer",
+    "rust",
+    "wordpress",
 
-    # Management/Leadership
-    "manager", "mgr", "management", "supervisor", "team lead",
+    # Mobile / embedded / hardware
+    "embedded", "firmware", "fpga", "hardware engineer", "iot", "robotics",
 
-    # Architecture (typically 8+ years)
-    "architect", "architecture lead", "solutions architect",
-    "enterprise architect", "technical architect",
+    # Non-engineering roles
+    "product manager", "project manager", "program manager",
+    "scrum master", "delivery manager", "business analyst",
+    "account manager", "sales", "marketing", "hr", "recruiter",
+    "talent acquisition",
 
-    # Specialized Roles Requiring Specific Degrees/Certifications
-    "civil engineer", "mechanical engineer", "electrical engineer",
-    "fpga engineer", "hardware engineer", "embedded systems",
-    "industrial engineer", "chemical engineer", "process engineer",
-    "broadcast", "manufacturing science", "production engineer", "III",
+    # DBA / infra-only
+    "database administrator", "dba", "system administrator",
+    "network engineer", "telecom", "infrastructure architect",
 
-    # Professional Designations You Don't Have
-    "p.eng", "p. eng", "professional engineer", "cpa", "chartered",
-    "licensed professional", "registered engineer", "cfa",
+    # QA-only roles
+    "qa engineer", "qa analyst", "test engineer", "automation tester",
+    "sdet", "qa lead", "test lead",
 
-    # Security Clearance Required
-    "secret clearance", "top secret", "security clearance required",
-    "clearance eligible", "defense", "military clearance",
+    # Design / media
+    "ui designer", "ux designer", "graphic designer", "video editor", "videographer",
 
-    # Language Requirements
-    "bilingual french", "fluent french", "french required",
-    "french mandatory", "bilinguisme", "bilingue",
+    # Academic / research
+    "research scientist", "postdoc", "phd",
 
-    # Business/Non-Technical Roles
-    "product manager", "product management", "business analyst",
-    "project manager", "program manager", "scrum master",
-    "account manager", "sales", "marketing", "hr specialist",
-    "people services", "recruitment", "talent acquisition",
+    # Internship / student (you want full-time)
+    "intern", "internship", "co-op", "co op", "student", "trainee", "apprentice",
+    "new grad", "graduate",
 
-    # Specialized Fields Outside Your Domain
-    "Java Developer", "Java", ".net", "Video Editor", "Videographer", "devops lead",
-    "site reliability lead", "infrastructure architect", "Paramedic", "Care", 
-    "database administrator", "dba", "system administrator", "Front Desk Agent",
-    "network engineer", "telecommunications", "telecom", "contract", "women"
-    "quality assurance lead", "qa lead", "test lead", "Android", "Aerospace Engineer",
+    # Clearance
+    "security clearance", "top secret", "ts/sci", "clearance required",
 
-    # Academic/Research (PhD required)
-    "research scientist", "research lead", "postdoc", "post-doctoral",
-
-    # Internships/Co-op (if you want full-time only)
-    "intern", "internship", "co-op", "co op", "student position",
-    "summer student", "coop", "stage", "stagiaire",
-
-    # Healthcare/Medical/Clinical
-    "clinical", "healthcare practitioner", "medical", "pharmaceutical",
-    "nursing", "therapy", "counseling",
-
-    # Finance-Specific (requiring CFA/professional certifications)
-    "portfolio manager", "investment analyst", "financial advisor",
-    "wealth management",
-
-    # Education/Teaching
-    "professor", "instructor", "teacher", "tutor", "lecturer",
-    "curriculum developer", "education specialist",
-
-    # 🚫 Social / Mental Health / Support Roles
-    "Crisis Responder", "Behaviour Analyst", "Social Worker", "Case Manager",
-    "Occupational Therapist", "Speech Language Pathologist", "Audiologist",
-    "Rehabilitation Specialist", "Mental Health Worker", "Addiction Counselor",
-    "Therapeutic Support Staff", "Child and Youth Worker",
-    "Early Childhood Educator", "Educational Assistant",
-    "Special Education Teacher", "Learning Support Specialist",
-    "Guidance Counselor", "Career Advisor", "Academic Advisor",
-    "School Psychologist", "School Nurse",
-
-    # 📚 Library / Museum / Heritage
-    "Librarian", "Library Technician", "Archivist", "Museum Curator",
-    "Conservation Technician", "Exhibit Designer", "Art Handler",
-    "Gallery Manager", "Registrar", "Collections Manager",
-    "Education Coordinator", "Public Programs Specialist",
-    "Development Officer", "Fundraising Coordinator",
-    "Grant Writer", "Donor Relations Manager", "Membership Coordinator",
-
-    # 📣 Comms / Marketing / Media / Content
-    "Communications Specialist", "Public Relations Officer",
-    "Marketing Coordinator", "Social Media Manager",
-    "Content Creator", "Copywriter", "Editor", "Proofreader",
-    "Translator", "Interpreter", "Technical Writer", "Journalist",
-    "Reporter", "News Anchor", "Broadcast Technician",
-    "Camera Operator", "Sound Engineer", "Lighting Technician",
-    "Video Producer", "Film Editor", "Production Assistant",
-
-    # 🎭 Creative / Arts / Production
-    "Set Designer", "Costume Designer", "Makeup Artist",
-    "Script Supervisor", "Location Scout", "Casting Director",
-    "Talent Agent", "Art Director", "Creative Director",
-    "Visual Effects Artist", "Animator", "Game Designer",
-
-    # 🧠 Mental Health / Clinical Support
-    "Psychotherapist", "Psychologist", "Counselor", "Counsellor",
-    "Addictions Counselor", "Substance Use Counselor",
-    "Caseworker", "Case Worker", "Support Worker",
-    "Personal Support Worker", "PSW", "Residential Support Worker",
-    "Shelter Worker", "Housing Support Worker", "Outreach Worker",
-    "Community Support Worker", "Community Worker",
-    "Family Support Worker", "Family Therapist",
-    "Youth Counselor", "Youth Counsellor", "Youth Worker",
-    "Child Protection Worker", "Crisis Intervention",
-    "Crisis Support Worker", "Recreation Therapist",
-    "Clinical Supervisor", "Clinical Coordinator",
-    "Registered Nurse", "RN", "Registered Practical Nurse", "RPN",
-    "Nurse Practitioner", "Nursing Assistant", "Health Care Aide",
-    "Psychiatric Nurse", "Public Health Nurse",
-    "Behaviour Therapist", "Rehabilitation Counselor",
-    "Addiction Worker", "Mental Health Counselor",
-    "Psychometrist",
-
-    # 🎓 Education / School / Academic
-    "Teacher", "Elementary Teacher", "High School Teacher",
-    "Secondary Teacher", "College Instructor", "College Professor",
-    "University Professor", "Faculty Member", "Lecturer",
-    "Instructor", "Teaching Assistant",
-    "Professor Emeritus", "Adjunct Professor",
-    "Department Chair", "Principal", "Vice Principal",
-    "Dean", "School Administrator", "School Principal",
-    "Education Assistant", "Instructional Coach",
-    "Curriculum Specialist", "Learning Specialist",
-    "Student Success Advisor", "Student Services Officer",
-    "Residence Life Coordinator", "Residence Advisor",
-    "Camp Counsellor", "Camp Counselor",
-
-    # 🏛 Museum / Heritage (more)
-    "Curatorial Assistant", "Curatorial Associate",
-    "Curatorial Fellow", "Heritage Interpreter", "Heritage Officer",
-    "Heritage Planner", "Museum Educator", "Museum Technician",
-    "Collections Assistant", "Collections Technician",
-    "Records Manager", "Records Technician", "Documentalist",
-    "Archivist Assistant",
-
-    # 🎯 Nonprofit / Fundraising / Events / Outreach
-    "Development Coordinator", "Development Associate",
-    "Development Manager", "Major Gifts Officer",
-    "Philanthropy Officer", "Stewardship Officer",
-    "Campaign Manager", "Campaign Coordinator",
-    "Outreach Coordinator", "Community Engagement Coordinator",
-    "Community Organizer", "Program Coordinator",
-    "Program Facilitator", "Program Manager",
-    "Event Coordinator", "Conference Coordinator",
-    "Conference Planner", "Special Events Coordinator",
-    "Volunteer Manager", "Volunteer Program Manager",
-
-    # 📣 Comms / Brand / Marketing (more)
-    "Communications Officer", "Communications Manager",
-    "Communications Advisor", "Communications Consultant",
-    "Brand Manager", "Brand Strategist",
-    "Digital Marketing Specialist", "Digital Marketer",
-    "SEO Specialist", "SEM Specialist",
-    "Media Relations Officer", "Press Secretary",
-    "Spokesperson", "Campaign Communications",
-    "Public Affairs Specialist", "Public Information Officer",
-    "Community Relations Coordinator",
-
-    # 🎭 Theatre / Stage / Production Crew
-    "Stage Manager", "Assistant Stage Manager",
-    "Theatre Technician", "Theatre Manager",
-    "Props Master", "Props Assistant",
-    "Scenic Artist", "Storyboard Artist",
-    "Storyboarder", "Sound Designer",
-    "Foley Artist", "Post Production Supervisor",
-    "Colorist", "Gaffer", "Best Boy",
-    "Grip", "Production Designer",
-    "Production Coordinator", "Production Manager",
-
-    # 🏗️ Non-software Engineering (mechanical/civil/etc.)
-    "Manufacturing Engineer", "Manufacturing Engineering",
-    "Manufacturing Analyst", "Industrial Engineer",
-    "Mechanical Systems Engineer", "Structural Engineer",
-    "Geotechnical Engineer", "Mining Engineer", "Miner",
-    "Rock Mechanics Engineer", "Hydraulic Engineer",
-    "Hydraulics Engineer", "HVDC Engineer", "Power Engineer",
-    "Substation Engineer", "Building Engineer",
-    "HVAC Engineer", "HVAC Engineering",
-    "Process Improvement Engineer", "Applied Dynamics Engineer",
-    "Aviation Engineer", "Aircraft Structural", "Aircraft Dynamics",
-    "Hydromechanical Engineer", "Airworthiness Engineer",
-    "Thermodynamics Engineer", "Thermal Engineer", "Fluid Engineer",
-    "Nuclear Operator", "Nuclear Engineer",
-    "Microfluidics Engineer", "Stationary Engineer",
-    "Conveyance Engineer",
-
-    # 🛠 Trades / Technicians / Plant
-    "Machining Specialist", "Assembler", "Assembly",
-    "Valve Technician", "Robot Programmer", "Robotics Technician",
-    "CNC", "Millwright", "Injection Molding",
-    "Paint Technician", "Welding Specialist",
-    "Quality Continuous Improvement Technician",
-    "Transport Sustaining Engineer", "Shop Technician",
-    "Machine Operator", "Operator",
-    "Plant Technician", "Maintenance Technician",
-
-    # 🧪 Lab / Wet-lab / Bio / Physical Sciences
-    "Microbiologist", "Clinical Research",
-    "Research Assistant (Physical Sciences)",
-    "Lab Technician", "Scientist (wet lab)",
-    "Biomedical", "Health Content Editor",
-
-    # 🧾 Accounting / Bookkeeping (pure finance ops)
-    "accounting specialist", "accounts payable",
-    "accounts receivable", "bookkeeper",
-
-    # 🗂️ Admin / Office (non-technical)
-    "Administrator", "Scheduling Coordinator", "Renewal Administrator",
-    "Service Administrator", "Shop Administrator",
-    "Office Administrator", "Housing Administrative",
-    "Reporting Analyst (non-technical)",
-
-    # ⚖️ Legal / Governance
-    "Legal Counsel", "Lawyer", "Regulatory Affairs",
-    "Governance",
-
-    # 🎨 Generic non-tech design
-    "Designer (non-UI)", "Motion Designer",
-    "Graphic Designer", "Brand/UI Designer",
-
-    # 🚚 Supply Chain / Logistics / Procurement
-    "Supply Chain", "Procurement", "Logistics",
-    "Operations Analyst (non-technical)",
-    "Replenishment Analyst", "Vendor Analyst",
-
-    # 🔐 Physical Security (not cyber)
-    "Security Guard", "Guard", "Security Officer",
-
-    # 👷 Misc unrelated jobs
-    "Mechanic", "Bowling Mechanic",
-    "Warehouse", "Factory", "Laborer",
-    "Bartender", "Cook", "Driver", "compiler",
-    "Field Technician", "Freelance",
-    "Estimator", "Scheduler",
+    # Language requirements
+    "french required", "bilingual french", "fluent french",
 ]
 
-# Additional spam/fake companies filter (matches `company` column)
 SPAM_COMPANIES = [
-    "Prime Jobs", "Next Jobs", "Jobs Ai", "Get Hired", "Crossover", "Recruit Loop", "Talent Pulse",
-    "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast", "YO IT CONSULTING", "DataAnnotation", "Mercor",
-    "Talent Connect", "Recruit Loop", "Talent Orbit", "Talent Pulse", "S M Software Solutions Inc", "Lumenalta",
-    "Crossing Hurdles", "Hire Sync", "Hire Wave", "HireFast", "Work Vista", "Hunter Bond", "Twine", "Talently",
-    "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work", "jobbit", "Akkodis", 
-
-    "EviSmart™", "Spait Infotech Private Limited", "Themesoft Inc.", "Mindrift", "Canonical", 
-    "V-Soft Consulting Group, Inc.", "Compunnel Inc.", "Avanciers", "Avanciers Inc.", "Avancier's Inc.",  # covers all variations
-    "Apexon", "Iris Software Inc.", "Galent", "n2psystems",
-    "Resonaite", "Astra-North Infoteck Inc.", "Alimentiv"
-    "Seven Hills Group Technologies Inc.", "Dexian", "DISYS",  # Dexian = former DISYS
-    "Raas Infotek", "Kumaran Systems", "Luxoft", "Synechron",
-    "Collabera", "Flexton Inc.", "Agilus Work Solutions",
-    "Procom", "TEKsystems", "Robert Half", "Call For Referral",
-    "Randstad Digital", "Randstad Digital Americas", "Next Match AI",
-    "Hays", "Insight Global", "Andiamo", "Swoon",
-    "HCR Permanent Search", "Signature IT World Inc.",
-    "Nexus Systems Group", "Altis Technology", "excelHR",
-    "BeachHead", "Bevertec", "Robertson & Company Ltd.",        
+    "Prime Jobs", "Next Jobs", "Jobs Ai", "Get Hired", "Crossover", "Recruit Loop",
+    "Talent Pulse", "Get Jobs", "Jobsmast", "Hiring Hub", "Tech Jobs Fast",
+    "YO IT CONSULTING", "DataAnnotation", "Mercor", "Talent Connect", "Talent Orbit",
+    "S M Software Solutions Inc", "Lumenalta", "Crossing Hurdles", "Hire Sync",
+    "Hire Wave", "HireFast", "Work Vista", "Hunter Bond", "Twine", "Talently",
+    "Gnapi Technologies", "Peroptyx", "FutureSight", "HiJob.work",
 ]
 
-# Dedicated spam keywords for description (phrases common in spammy descriptions)
 SPAM_DESCRIPTION_KEYWORDS = [
-    "quick money", "5+ years",  "6+ years", "7+ years", "8+ years", "10+ years", 
-    "9 years", "6 years", "7 years", "8 years",
+    "quick money", "quick cash", "easy money",
+    "get paid instantly", "commission only", "unlimited commission",
+    "pay per task", "training fee", "registration fee",
+    "telegram", "whatsapp", "crypto payment",
 ]
+
+
+# ======================================
+# 2) EXPERIENCE FILTER (ONLY 4–5 YEARS)
+# ======================================
+#
+# Strategy:
+# - Block explicit <4 years (0–3 years patterns)
+# - Block explicit >5 years (6+ years patterns)
+# - Require an allow hit for 4 or 5 years patterns
+#
+# Note: Many postings say "3-5 years" or "2-5 years". Your requirement is strict 4–5.
+#       So "3-5 years" will be rejected (because it includes <4).
+#
+
+# allow 4–5 years mentions
+ALLOW_4_5_REGEX = re.compile(
+    r"""
+    (
+        \b4\s*[\+]\s*years\b |
+        \b5\s*[\+]\s*years\b |
+        \b4\s*years\b |
+        \b5\s*years\b |
+        \b4\s*[-–to]+\s*5\s*years\b |
+        \b4\s*[-–to]+\s*5\s*yrs\b |
+        \b4\s*yrs\b |
+        \b5\s*yrs\b
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+# block any explicit "0–3 years" requirement
+BLOCK_LOW_REGEX = re.compile(
+    r"""
+    (
+        \b(0|1|2|3)\s*[\+]\s*(years|yrs)\b |
+        \b(0|1|2|3)\s*(years|yrs)\b |
+        \bentry[-\s]*level\b |
+        \bjunior\b |
+        \bjr\b |
+        \bassociate\b |
+        \bnew\s*grad\b |
+        \bgraduate\b
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+# block any explicit "6+ years" or higher requirement
+BLOCK_HIGH_REGEX = re.compile(
+    r"""
+    (
+        \b(6|7|8|9)\s*[\+]\s*(years|yrs)\b |
+        \b(6|7|8|9)\s*(years|yrs)\b |
+        \b1[0-9]\s*[\+]\s*(years|yrs)\b |
+        \b1[0-9]\s*(years|yrs)\b |
+        \b15\s*[\+]\s*(years|yrs)\b |
+        \bstaff\b |
+        \bprincipal\b |
+        \bdistinguished\b
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+# block ranges that include <4, e.g., "2-5 years", "3 to 5 years"
+BLOCK_RANGE_INCLUDES_LOW_REGEX = re.compile(
+    r"""
+    (
+        \b(0|1|2|3)\s*[-–to]+\s*(4|5)\s*(years|yrs)\b |
+        \b(0|1|2|3)\s*[-–to]+\s*(5|6|7|8|9|1[0-9])\s*(years|yrs)\b |
+        \b(0|1|2|3)\s*to\s*(4|5)\s*(years|yrs)\b
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+# =========================
+# 3) .NET ROLE POSITIVE HINT
+# =========================
+#
+# Optional: ensures jobs have at least one .NET signal.
+# You can disable this by setting REQUIRE_DOTNET_SIGNAL = False
+#
+REQUIRE_DOTNET_SIGNAL = True
+
+DOTNET_SIGNALS = [
+    ".net", "dotnet", "c#", "asp.net", "aspnet",
+    "entity framework", "ef core", "asp.net core",
+    "web api", "mvc",
+]
+
+
+# =========================
+# 4) CORE FILTER FUNCTIONS
+# =========================
+
+def _norm(s: str | None) -> str:
+    return (s or "").strip().lower()
+
+
+def _contains_any(text: str, keywords: list[str]) -> bool:
+    t = _norm(text)
+    return any(k.lower() in t for k in keywords)
+
+
+def matches_dotnet_signal(title: str, description: str) -> bool:
+    text = f"{_norm(title)}\n{_norm(description)}"
+    return any(sig in text for sig in DOTNET_SIGNALS)
+
+
+def experience_is_4_to_5_only(description: str, title: str = "") -> Tuple[bool, str]:
+    """
+    Returns (is_match, reason)
+    """
+    text = f"{_norm(title)}\n{_norm(description)}"
+
+    # Hard blocks first
+    if BLOCK_LOW_REGEX.search(text):
+        return False, "Rejected: experience too low / junior keywords"
+    if BLOCK_HIGH_REGEX.search(text):
+        return False, "Rejected: experience too high / staff/principal/6+ yrs"
+    if BLOCK_RANGE_INCLUDES_LOW_REGEX.search(text):
+        return False, "Rejected: range includes <4 years (e.g., 2-5, 3-5)"
+
+    # Require explicit 4/5 year hit
+    if not ALLOW_4_5_REGEX.search(text):
+        return False, "Rejected: no explicit 4–5 years requirement found"
+
+    return True, "Accepted: matches 4–5 years"
+
+
+def should_skip_job(title: str, company: str, description: str) -> Tuple[bool, str]:
+    """
+    Returns (skip, reason)
+    """
+    t = _norm(title)
+    c = (company or "").strip()
+    d = _norm(description)
+
+    # Company spam
+    if c and c.strip() in SPAM_COMPANIES:
+        return True, "Spam company"
+
+    # Spam keywords in title/description
+    combined = f"{t}\n{d}"
+    if _contains_any(combined, SPAM_KEYWORDS):
+        return True, "Spam keyword / role mismatch"
+
+    # Spammy descriptions
+    if _contains_any(d, SPAM_DESCRIPTION_KEYWORDS):
+        return True, "Spam description"
+
+    # Experience filter: only 4–5 years
+    ok_exp, exp_reason = experience_is_4_to_5_only(description=d, title=t)
+    if not ok_exp:
+        return True, exp_reason
+
+    # Optional: ensure .NET signal exists
+    if REQUIRE_DOTNET_SIGNAL and not matches_dotnet_signal(title=t, description=d):
+        return True, "Rejected: missing .NET/C#/ASP.NET signal"
+
+    return False, "Accepted"
+
+
+# =========================
+# 5) QUICK SELF-TEST (OPTIONAL)
+# =========================
+if __name__ == "__main__":
+    samples = [
+        {
+            "title": "Software Engineer (.NET) - 4+ years",
+            "company": "GoodCo",
+            "description": "We need C#, .NET 8, ASP.NET Core Web API. Minimum 4+ years experience."
+        },
+        {
+            "title": "Senior Software Engineer",
+            "company": "GoodCo",
+            "description": "Requirements: 6+ years of experience with Java and Spring Boot."
+        },
+        {
+            "title": "Software Engineer",
+            "company": "GoodCo",
+            "description": "2-5 years experience required. React + Node."
+        },
+        {
+            "title": "Junior Developer",
+            "company": "GoodCo",
+            "description": "Entry level, 1+ years. C#."
+        },
+    ]
+
+    for s in samples:
+        skip, reason = should_skip_job(s["title"], s["company"], s["description"])
+        print(f"{'SKIP' if skip else 'KEEP'} | {s['title']} | {reason}")
