@@ -93,16 +93,6 @@ SEARCH_TERMS = [
     ".NET Microservices Developer",
     "Distributed Systems Engineer .NET",
 
-    # DevOps-aware .NET
-    ".NET Developer Azure DevOps",
-    ".NET Developer CI/CD",
-    ".NET Developer Docker",
-
-    # Enterprise / Banking-style titles
-    "Enterprise .NET Developer",
-    "Enterprise Software Engineer .NET",
-    "Banking Application Developer .NET",
-
     # Generic (filtered later by experience + stack)
     "Software Engineer",
     "Backend Software Engineer",
@@ -113,106 +103,28 @@ SEARCH_TERMS = [
 # 🌎 SEARCH LOCATIONS (MAX JOB COVERAGE – USA)
 # ---------------------------------------------------------
 LOCATIONS = [
+    "USA",
     "United States",
 
-    # Major tech states
+    # States
     "California, USA",
     "Texas, USA",
-    "Washington, USA",
-    "New York, USA",
-    "Virginia, USA",
-    "Georgia, USA",
-    "Illinois, USA",
-    "Massachusetts, USA",
-    "Colorado, USA",
-    "Arizona, USA",
     "Florida, USA",
     "North Carolina, USA",
-    "New Jersey, USA",
-    "Pennsylvania, USA",
-    "Ohio, USA",
-    "Minnesota, USA",
-    "Wisconsin, USA",
-    "Michigan, USA",
+    "Missouri, USA",
+    "Kansas, USA",
 
-    # Texas metros
+    # Cities
     "Austin, TX",
     "Dallas, TX",
-    "Houston, TX",
-    "San Antonio, TX",
-    "Plano, TX",
-    "Irving, TX",
-
-    # California metros
-    "San Francisco, CA",
-    "San Jose, CA",
-    "Sunnyvale, CA",
-    "Santa Clara, CA",
-    "Mountain View, CA",
-    "Los Angeles, CA",
-    "San Diego, CA",
-    "Irvine, CA",
-
-    # Washington (Azure-heavy)
-    "Seattle, WA",
-    "Redmond, WA",
-    "Bellevue, WA",
-
-    # New York / NJ
-    "New York, NY",
-    "Manhattan, NY",
-    "Brooklyn, NY",
-    "Jersey City, NJ",
-
-    # Virginia / DMV
-    "Reston, VA",
-    "Herndon, VA",
-    "Arlington, VA",
-    "Tysons, VA",
-    "Fairfax, VA",
-
-    # Illinois
-    "Chicago, IL",
-    "Naperville, IL",
-
-    # North Carolina
-    "Charlotte, NC",
-    "Raleigh, NC",
-    "Durham, NC",
-
-    # Florida
-    "Orlando, FL",
-    "Tampa, FL",
-    "Miami, FL",
-    "Jacksonville, FL",
-
-    # Georgia
-    "Atlanta, GA",
-
-    # Massachusetts
-    "Boston, MA",
-    "Cambridge, MA",
-
-    # Colorado
-    "Denver, CO",
-    "Boulder, CO",
-
-    # Arizona
-    "Phoenix, AZ",
-    "Tempe, AZ",
-
-    # Midwest .NET strongholds
     "Kansas City, MO",
     "Kansas City, KS",
-    "St. Louis, MO",
-    "Columbus, OH",
-    "Cleveland, OH",
-    "Cincinnati, OH",
-    "Minneapolis, MN",
-    "Madison, WI",
-    "Milwaukee, WI",
-    "Detroit, MI",
-
+    "Charlotte, NC",
+    "Orlando, FL",
+    "Tampa, FL",
+    "San Francisco, CA",
+    "Los Angeles, CA",
+    "San Diego, CA",
     # Remote-friendly
     "Remote, USA",
     "United States (Remote)",
