@@ -37,44 +37,230 @@ def log(msg):
     print(msg)
     LOGS.append(str(msg))
 
-# ---------------------------------------------------------
-# PERSONALIZED CONFIG 
-# ---------------------------------------------------------
+# =========================================================
+# FULL JOB SCRAPING CONFIG
+# Profile-aligned: .NET Full Stack Developer (4–5 yrs)
+# Stack: C#, .NET 8/6, ASP.NET Core, Web API, Azure, AWS,
+#        Microservices, React, Angular, Docker, CI/CD
+# =========================================================
 
+# ---------------------------------------------------------
+# 🎯 SEARCH ROLES (STRICTLY BASED ON YOUR RESUME)
+# ---------------------------------------------------------
 SEARCH_TERMS = [
-    "machine learning", "ml engineer", "mlops engineer",
-    "data engineer", "data scientist", "data analyst",
-    "ai engineer", "llm engineer", "python", "Artificial Intelligence",
-    "numpy, pandas, scikit learn, matplotlib, TensorFlow",
-    "backend developer", "fastapi",
-    "RAG (Retrival Augmented Generation)",
-    "MCP (Model Context Protocol)",
-    "HuggingFace", "Sentiment Analysis",
-    "React", "Next.js",
+    # Core .NET / C#
+    ".NET Developer",
+    "C# Developer",
+    ".NET Software Engineer",
+    "Software Engineer .NET",
+    "Software Developer .NET",
+    ".NET Application Developer",
+    "C# Application Developer",
+
+    # ASP.NET Core / Web API
+    "ASP.NET Core Developer",
+    "ASP.NET Core Web API Developer",
+    ".NET Web API Developer",
+    "C# API Developer",
+    "REST API Developer .NET",
+
+    # Backend-focused
+    "Backend .NET Developer",
+    "C# Backend Developer",
+    ".NET Backend Engineer",
+    "Backend Software Engineer .NET",
+
+    # Full Stack (React / Angular)
+    ".NET Full Stack Developer",
+    "Full Stack Developer .NET",
+    "Full Stack Engineer .NET",
+    "Full Stack Software Engineer .NET",
+    "React .NET Developer",
+    "Angular .NET Developer",
+    "Full Stack C# Developer",
+
+    # Cloud / Azure / AWS
+    "Azure .NET Developer",
+    "Azure Backend Developer",
+    "Azure Software Engineer .NET",
+    "Cloud Developer .NET",
+    "Cloud Software Engineer .NET",
+    "AWS .NET Developer",
+    "AWS Backend Developer",
+
+    # Microservices / Distributed Systems
+    "Microservices .NET Developer",
+    ".NET Microservices Developer",
+    "Distributed Systems Engineer .NET",
+
+    # DevOps-aware .NET
+    ".NET Developer Azure DevOps",
+    ".NET Developer CI/CD",
+    ".NET Developer Docker",
+
+    # Enterprise / Banking-style titles
+    "Enterprise .NET Developer",
+    "Enterprise Software Engineer .NET",
+    "Banking Application Developer .NET",
+
+    # Generic (filtered later by experience + stack)
+    "Software Engineer",
+    "Backend Software Engineer",
+    "Full Stack Software Engineer",
 ]
 
+# ---------------------------------------------------------
+# 🌎 SEARCH LOCATIONS (MAX JOB COVERAGE – USA)
+# ---------------------------------------------------------
 LOCATIONS = [
-    "Toronto, Ontario, Canada",
-    "Ontario, Canada",
-    "Canada",
+    "United States",
+
+    # Major tech states
+    "California, USA",
+    "Texas, USA",
+    "Washington, USA",
+    "New York, USA",
+    "Virginia, USA",
+    "Georgia, USA",
+    "Illinois, USA",
+    "Massachusetts, USA",
+    "Colorado, USA",
+    "Arizona, USA",
+    "Florida, USA",
+    "North Carolina, USA",
+    "New Jersey, USA",
+    "Pennsylvania, USA",
+    "Ohio, USA",
+    "Minnesota, USA",
+    "Wisconsin, USA",
+    "Michigan, USA",
+
+    # Texas metros
+    "Austin, TX",
+    "Dallas, TX",
+    "Houston, TX",
+    "San Antonio, TX",
+    "Plano, TX",
+    "Irving, TX",
+
+    # California metros
+    "San Francisco, CA",
+    "San Jose, CA",
+    "Sunnyvale, CA",
+    "Santa Clara, CA",
+    "Mountain View, CA",
+    "Los Angeles, CA",
+    "San Diego, CA",
+    "Irvine, CA",
+
+    # Washington (Azure-heavy)
+    "Seattle, WA",
+    "Redmond, WA",
+    "Bellevue, WA",
+
+    # New York / NJ
+    "New York, NY",
+    "Manhattan, NY",
+    "Brooklyn, NY",
+    "Jersey City, NJ",
+
+    # Virginia / DMV
+    "Reston, VA",
+    "Herndon, VA",
+    "Arlington, VA",
+    "Tysons, VA",
+    "Fairfax, VA",
+
+    # Illinois
+    "Chicago, IL",
+    "Naperville, IL",
+
+    # North Carolina
+    "Charlotte, NC",
+    "Raleigh, NC",
+    "Durham, NC",
+
+    # Florida
+    "Orlando, FL",
+    "Tampa, FL",
+    "Miami, FL",
+    "Jacksonville, FL",
+
+    # Georgia
+    "Atlanta, GA",
+
+    # Massachusetts
+    "Boston, MA",
+    "Cambridge, MA",
+
+    # Colorado
+    "Denver, CO",
+    "Boulder, CO",
+
+    # Arizona
+    "Phoenix, AZ",
+    "Tempe, AZ",
+
+    # Midwest .NET strongholds
+    "Kansas City, MO",
+    "Kansas City, KS",
+    "St. Louis, MO",
+    "Columbus, OH",
+    "Cleveland, OH",
+    "Cincinnati, OH",
+    "Minneapolis, MN",
+    "Madison, WI",
+    "Milwaukee, WI",
+    "Detroit, MI",
+
+    # Remote-friendly
+    "Remote, USA",
+    "United States (Remote)",
+    "Hybrid, USA",
 ]
 
-SITES = ["indeed", "linkedin"]
+# ---------------------------------------------------------
+# 🌐 JOB SITES
+# ---------------------------------------------------------
+# indeed   -> safest
+# linkedin -> may require cookies / throttling
+# glassdoor -> may block aggressively
+# jobright -> good if supported by your scraper
 
-RESULTS_WANTED = int("50")
-HOURS_OLD = int("26") # 24 hours + 2 extra for timezones & delays
-COUNTRY = "Canada"
+SITES = [
+    "indeed",
+    "linkedin",
+    "glassdoor",
+    "jobright",
+]
 
+# ---------------------------------------------------------
+# ⚙️ SCRAPE SETTINGS
+# ---------------------------------------------------------
+RESULTS_WANTED = 50
+HOURS_OLD = 26          # 24 hours + buffer
+COUNTRY = "USA"
+
+# ---------------------------------------------------------
+# 📁 OUTPUT
+# ---------------------------------------------------------
 OUTPUT_DIR = "jobs_data"
-MASTER_FILE = "canada_ml_jobs_master.csv"
+MASTER_FILE = "usa_dotnet_jobs_master.csv"
 
 # ---------------------------------------------------------
-# 🔴 SPAM KEYWORDS - Filter out jobs YOU'RE NOT ELIGIBLE FOR
+# 🔴 FILTERING (IMPORTED)
 # ---------------------------------------------------------
-# Based on your profile: New grad (April 2026), ~8 months internship experience
-# Strong in: Python, ML/MLOps, Data Science, Cloud (AWS/Azure), no French, no P.Eng
-
-# Spam filters are imported from spam_filters.py
+# spam_filters.py must contain:
+# - SPAM_KEYWORDS
+# - SPAM_COMPANIES
+# - SPAM_DESCRIPTION_KEYWORDS
+# - STRICT experience filter: ONLY 4–5 years
+#
+# Example usage in main script:
+# from spam_filters import should_skip_job
+#
+# if should_skip_job(title, company, description)[0]:
+#     continue
 
 
 def scrape_all_jobs():
