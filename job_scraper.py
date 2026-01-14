@@ -45,12 +45,9 @@ def log(msg: str):
 # 🎯 SEARCH ROLES (STRONG 6 ONLY)
 # ---------------------------------------------------------
 SEARCH_TERMS = [
-    "Senior .NET Developer",
     "Backend Engineer .NET",
-    "Software Engineer .NET",
-    ".NET Full Stack Developer",
     "Azure .NET Developer",
-    "SDE II .NET",
+    ".NET Full Stack Developer (React/Angular + Web API)",
 ]
 
 # ---------------------------------------------------------
