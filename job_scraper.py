@@ -70,29 +70,6 @@ LOCATIONS = [
     # Texas
     "Austin, TX",
     "Dallas, TX",
-    "Houston, TX",
-
-    # California
-    "San Francisco, CA",
-    "San Jose, CA",
-    "Los Angeles, CA",
-    "San Diego, CA",
-
-    # Washington
-    "Seattle, WA",
-    "Redmond, WA",
-
-    # Florida
-    "Tampa, FL",
-    "Orlando, FL",
-    "Miami, FL",
-
-    # North Carolina
-    "Charlotte, NC",
-    "Raleigh, NC",
-
-    # Illinois
-    "Chicago, IL",
 
     # Remote-friendly
     "Remote, USA",
